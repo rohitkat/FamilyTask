@@ -1,0 +1,165 @@
+@using Domain.ViewModel
+@using WebClient.Abstractions
+
+@namespace WebClient.Components
+@inject IMemberDataService memberDataService
+
+
+<style>
+
+	.create-wrapper .header {
+		color: #000000;
+		font-size: 32px;
+		line-height: 48px;
+		font-family: "Poppins SemiBold";
+	}
+
+	.create-wrapper label {
+		color: #000000;
+		font-size: 24px;
+		line-height: 36px;
+		font-family: "Poppins Light";
+	}
+
+	.create-wrapper .avtar {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		display: inline-block;
+		cursor: pointer;
+	}
+
+	@@media(max-width: 1400px) {
+		.create-wrapper .header {
+			font-size: 24px;
+			line-height: 32px;
+		}
+
+		.create-wrapper label {
+			font-size: 16px;
+			line-height: 24px;
+		}
+
+		.create-wrapper .avtar {
+			width: 32px;
+			height: 32px;
+		}
+	}
+
+	@@media(max-width: 767.98px) {
+		.create-wrapper .header {
+			font-size: 16px;
+			line-height: 24px;
+		}
+
+		.create-wrapper .avtar {
+			width: 16px;
+			height: 16px;
+		}
+	}
+</style>
+<EditForm Model=@member OnValidSubmit="OnAddClick">
+	<DataAnnotationsValidator />
+	<div class="create-wrapper col-12">
+		<div class="col-12 header pb-5 pb-sm-3"> Add Family Member </div>
+		<div class="row m-0 form">
+			<div class="row m-0 col-12 p-0">
+
+				<Field class="col-6 custom-input">
+					<FieldLabel>First Name</FieldLabel>
+					<InputText @bind-Value=member.FirstName class="form-control" id="FirstName" />
+					<ValidationMessage For="() => member.FirstName" />
+				</Field>
+
+				<Field class="col-6 custom-input">
+					<FieldLabel>Last Name</FieldLabel>
+					<InputText @bind-Value=member.LastName class="form-control" id="LastName" />
+					<ValidationMessage For="() => member.LastName" />
+				</Field>
+
+			</div>
+			<div class="row m-0 col-12 p-0">
+				<Field class="col-12 custom-input">
+					<FieldLabel>Email Address</FieldLabel>
+					<InputText @bind-Value=member.Email class="form-control" id="Email" />
+					<ValidationMessage For="() => member.Email" />
+				</Field>
+
+			</div>
+			<div class="row m-0 col-12 p-0">
+
+				<Field class="col-12 custom-input">
+					<FieldLabel>Roles</FieldLabel>
+					<InputText @bind-Value=member.Roles class="form-control" id="Roles" />
+				</Field>
+
+			</div>
+			<div class="row m-0 col-12 p-0">
+				<Field class="col-12">
+					<FieldLabel>Select Avtar</FieldLabel>
+					<div class="row m-0 col-12 p-0">
+						<div class="col-9 p-0">
+							@foreach (var item in avatars)
+							{
+								<div class="avtar" @onclick="@(e => OnAvatarSelect(item))" style="background-color: @item;"></div>
+							}
+						</div>
+						<div class="col-3 p-0 text-right">
+							@if (member.Id == Guid.Empty)
+							{
+								<input type="submit" class="add-btn px-4" value="Add Member" />
+							}
+							else
+							{
+								<input type="submit" class="add-btn px-4" value="Update Member" />
+							}
+						</div>
+					</div>
+				</Field>
+			</div>
+		</div>
+	</div>
+</EditForm>
+
+
+@code {
+
+	private MemberVm member;
+	private string[] avatars = new string[] { "#FE4E4E", "#FEB84E", "#FEEC4E", "#3EC732", "#4EFEF3", "#4E7FFE", "#E54EFE", "#C17216" };
+
+	protected override Task OnInitializedAsync()
+	{
+		member = memberDataService.SelectedMember ?? new MemberVm();
+		memberDataService.SelectedMemberChanged += MemberDataServiceOnSelectedMemberChanged;
+		return base.OnInitializedAsync();
+	}
+
+	private void MemberDataServiceOnSelectedMemberChanged(object sender, EventArgs e)
+	{
+		member = memberDataService.SelectedMember ?? new MemberVm();
+
+		StateHasChanged();
+	}
+
+	private void OnUpdateClick()
+	{
+		memberDataService.UpdateMember(member);
+	}
+
+	private void OnAddClick()
+	{
+		if (memberDataService.SelectedMember != null)
+		{
+			OnUpdateClick();
+			return;
+		}
+		memberDataService.CreateMember(member);
+		member = new MemberVm();
+	}
+
+	private void OnAvatarSelect(string item)
+	{
+		member.Avatar = item;
+	}
+
+}
